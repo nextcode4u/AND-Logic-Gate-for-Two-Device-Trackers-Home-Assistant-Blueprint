@@ -1,0 +1,49 @@
+blueprint:
+  name: 'AND Logic Gate for Two Device Trackers'
+  description: 'Trigger an action when both device trackers are in a specified state.'
+  domain: automation
+  input:
+    device_tracker_1:
+      name: Device Tracker 1
+      description: 'First device tracker.'
+      selector:
+        entity:
+          domain: device_tracker
+    device_tracker_2:
+      name: Device Tracker 2
+      description: 'Second device tracker.'
+      selector:
+        entity:
+          domain: device_tracker
+    action:
+      name: Action
+      description: 'The action to perform when both device trackers are home.'
+      selector:
+        action: {}
+
+trigger:
+  platform: state
+  entity_id:
+    - !input 'device_tracker_1'
+    - !input 'device_tracker_2'
+  to: 'home'
+condition:
+  - condition: state
+    entity_id: !input 'device_tracker_1'
+    state: 'home'
+  - condition: state
+    entity_id: !input 'device_tracker_2'
+    state: 'home'
+action:
+  - choose:
+    - conditions:
+      - condition: and
+        conditions:
+          - condition: state
+            entity_id: !input 'device_tracker_1'
+            state: 'home'
+          - condition: state
+            entity_id: !input 'device_tracker_2'
+            state: 'home'
+      sequence: !input 'action'
+mode: single
