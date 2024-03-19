@@ -1,49 +1,23 @@
-blueprint:
-  name: 'AND Logic Gate for Two Device Trackers'
-  description: 'Trigger an action when both device trackers are in a specified state.'
-  domain: automation
-  input:
-    device_tracker_1:
-      name: Device Tracker 1
-      description: 'First device tracker.'
-      selector:
-        entity:
-          domain: device_tracker
-    device_tracker_2:
-      name: Device Tracker 2
-      description: 'Second device tracker.'
-      selector:
-        entity:
-          domain: device_tracker
-    action:
-      name: Action
-      description: 'The action to perform when both device trackers are home.'
-      selector:
-        action: {}
+input_boolean:
+  residents:
+    name: Residents
+    initial: off
+    icon: mdi:home-group
 
-trigger:
-  platform: state
-  entity_id:
-    - !input 'device_tracker_1'
-    - !input 'device_tracker_2'
-  to: 'home'
-condition:
-  - condition: state
-    entity_id: !input 'device_tracker_1'
-    state: 'home'
-  - condition: state
-    entity_id: !input 'device_tracker_2'
-    state: 'home'
-action:
-  - choose:
-    - conditions:
-      - condition: and
-        conditions:
-          - condition: state
-            entity_id: !input 'device_tracker_1'
-            state: 'home'
-          - condition: state
-            entity_id: !input 'device_tracker_2'
-            state: 'home'
-      sequence: !input 'action'
-mode: single
+automation:
+  - alias: "Update Residents Presence"
+    trigger:
+      - platform: state
+        entity_id: device_tracker.person1
+      - platform: state
+        entity_id: device_tracker.person2
+    condition:
+      - condition: template
+        value_template: "{{ is_state('device_tracker.person1', 'home') and is_state('device_tracker.person2', 'home') }}"
+    action:
+      - service: input_boolean.turn_on
+        entity_id: input_boolean.residents
+      - condition: else
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.residents
+
